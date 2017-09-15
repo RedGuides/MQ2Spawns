@@ -2,6 +2,7 @@
 // and may not be redistributed without permission of the author
 
 #include "../MQ2Plugin.h"
+using namespace std;
 #include <vector>
 
 const char*  MODULE_NAME    = "MQ2Spawns";
