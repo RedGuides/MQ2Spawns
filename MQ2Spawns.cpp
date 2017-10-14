@@ -195,7 +195,8 @@ public:
         OutStruct->Clickable = 0;
         BitOff(WindowStyle, CWS_CLOSE);
         CloseOnESC = 0;
-        *(DWORD*)&(((PCHAR)StmlOut)[EQ_CHAT_HISTORY_OFFSET]) = 400;
+		StmlOut->MaxLines = 400;
+        //*(DWORD*)&(((PCHAR)StmlOut)[EQ_CHAT_HISTORY_OFFSET]) = 400;
     }
 
     int WndNotification(CXWnd *pWnd, unsigned int Message, void *data)
