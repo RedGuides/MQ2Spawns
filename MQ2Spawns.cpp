@@ -188,10 +188,10 @@ public:
     CSpawnWnd(CXStr *Template):CCustomWnd(Template)
     {
         SetWndNotification(CSpawnWnd);
-        StmlOut = (CStmlWnd *)GetChildItem("CWChatOutput");
+        StmlOut = (CStmlWnd *)GetChildItem("CW_ChatOutput");
         OutWnd = (CXWnd*)StmlOut;
         OutWnd->Clickable = 1;
-        OutStruct = (_CSIDLWND*)GetChildItem("CWChatOutput");
+        OutStruct = (_CSIDLWND*)GetChildItem("CW_ChatOutput");
         OutStruct->Clickable = 0;
         BitOff(WindowStyle, CWS_CLOSE);
         CloseOnESC = 0;
