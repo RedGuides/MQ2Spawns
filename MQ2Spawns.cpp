@@ -1835,7 +1835,7 @@ PLUGIN_API void SetGameState(unsigned long ulGameState)
 
     if (ulGameState == GAMESTATE_INGAME)
     {
-        sprintf_s(szLogFile, "MQ2Spawns-%s.log", GetShortZone(((PSPAWNINFO)pLocalPlayer)->Zone));
+        sprintf_s(szLogFile, "MQ2Spawns-%s.log", GetShortZone(((PSPAWNINFO)pLocalPlayer)->GetZoneID()));
         sprintf_s(szCharName, "%s.%s", EQADDR_SERVERNAME, ((PCHARINFO)pCharData)->Name);
         sprintf_s(szLogPath, "%s\\%s", szDirPath, szLogFile);
         CreateOurWnd();
