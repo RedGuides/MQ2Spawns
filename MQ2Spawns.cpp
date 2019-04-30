@@ -190,11 +190,11 @@ public:
         SetWndNotification(CSpawnWnd);
         StmlOut = (CStmlWnd *)GetChildItem("CW_ChatOutput");
         OutWnd = (CXWnd*)StmlOut;
-        OutWnd->Clickable = 1;
+        OutWnd->SetClickable(1);
         OutStruct = (_CSIDLWND*)GetChildItem("CW_ChatOutput");
-        OutStruct->Clickable = 0;
-        BitOff(WindowStyle, CWS_CLOSE);
-        CloseOnESC = 0;
+        OutStruct->SetClickable(0);
+        RemoveStyle(CWS_CLOSE);
+        SetEscapable(0);
 		StmlOut->MaxLines = 400;
         //*(DWORD*)&(((PCHAR)StmlOut)[EQ_CHAT_HISTORY_OFFSET]) = 400;
     }
@@ -203,7 +203,7 @@ public:
     {
         if (pWnd == NULL && Message == XWM_CLOSE)
         {
-            dShow = 1;
+            SetVisible(1);
             return 0;
         }
         return CSidlScreenWnd::WndNotification(pWnd,Message,data);
@@ -234,7 +234,7 @@ public:
         ((CXWnd*)OurWnd->OutWnd)->SetFont(SelFont);
         ((CStmlWnd*)OurWnd->OutWnd)->SetSTMLText(str, 1, 0);
         ((CStmlWnd*)OurWnd->OutWnd)->ForceParseNow();
-        DebugTry(((CXWnd*)OurWnd->OutWnd)->SetVScrollPos(OurWnd->OutWnd->VScrollMax));
+        DebugTry(((CXWnd*)OurWnd->OutWnd)->SetVScrollPos(OurWnd->OutWnd->GetVScrollMax()));
         OurWnd->FontSize = size;
     };
 
@@ -255,26 +255,26 @@ void SaveOurWnd()
 
     char szTemp[MAX_STRING]               = {0};
 
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatTop",      SafeItoa(UseWnd->Location.top,    szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatBottom",   SafeItoa(UseWnd->Location.bottom, szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatLeft",     SafeItoa(UseWnd->Location.left,   szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatRight",    SafeItoa(UseWnd->Location.right,  szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Fades",        SafeItoa(UseWnd->Fades,           szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Alpha",        SafeItoa(UseWnd->Alpha,           szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "FadeToAlpha",  SafeItoa(UseWnd->FadeToAlpha,     szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Duration",     SafeItoa(UseWnd->FadeDuration,    szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Locked",       SafeItoa(UseWnd->Locked,          szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Delay",        SafeItoa(UseWnd->FadeDelay,   szTemp, 10), INIFileName);
-    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGType",       SafeItoa(UseWnd->BGType,          szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatTop",      SafeItoa(UseWnd->GetLocation().top,    szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatBottom",   SafeItoa(UseWnd->GetLocation().bottom, szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatLeft",     SafeItoa(UseWnd->GetLocation().left,   szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatRight",    SafeItoa(UseWnd->GetLocation().right,  szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Fades",        SafeItoa(UseWnd->GetFades(),           szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Alpha",        SafeItoa(UseWnd->GetAlpha(),           szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "FadeToAlpha",  SafeItoa(UseWnd->GetFadeToAlpha(),     szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Duration",     SafeItoa(UseWnd->GetFadeDuration(),    szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Locked",       SafeItoa(UseWnd->IsLocked(),          szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Delay",        SafeItoa(UseWnd->GetFadeDelay(),   szTemp, 10), INIFileName);
+    WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGType",       SafeItoa(UseWnd->GetBGType(),          szTemp, 10), INIFileName);
 	ARGBCOLOR col = { 0 };
-	col.ARGB = UseWnd->BGColor;
+	col.ARGB = UseWnd->GetBGColor();
 	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.alpha",   SafeItoa(col.A,       szTemp, 10), INIFileName);
 	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.red",   SafeItoa(col.R,       szTemp, 10), INIFileName);
     WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.green", SafeItoa(col.G,       szTemp, 10), INIFileName);
     WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.blue",  SafeItoa(col.B,       szTemp, 10), INIFileName);
     WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "FontSize",     SafeItoa(OurWnd->FontSize,   szTemp, 10), INIFileName);
 
-    GetCXStr(UseWnd->WindowText, szTemp);
+    GetCXStr(UseWnd->CGetWindowText(), szTemp);
     WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "WindowTitle", szTemp, INIFileName);
 }
 
@@ -285,30 +285,32 @@ void CreateOurWnd()
         class CXStr ChatWnd("ChatWindow");
         OurWnd = new CSpawnWnd(&ChatWnd);
 
-        OurWnd->Location.top    = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatTop",      10,   INIFileName);
-        OurWnd->Location.bottom = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatBottom",   210,  INIFileName);
-        OurWnd->Location.left   = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatLeft",     10,   INIFileName);
-        OurWnd->Location.right  = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatRight",    410,  INIFileName);
-        OurWnd->Fades           = (GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Fades",        0,    INIFileName) ? true:false);
-        OurWnd->Alpha           = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Alpha",        255,  INIFileName);
-        OurWnd->FadeToAlpha     = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "FadeToAlpha",  255,  INIFileName);
-        OurWnd->FadeDuration    = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Duration",     500,  INIFileName);
-        OurWnd->Locked          = (GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Locked",       0,    INIFileName) ? true:false);
-        OurWnd->FadeDelay		= GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Delay",        2000, INIFileName);
-        OurWnd->BGType          = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGType",       1,    INIFileName);
+		OurWnd->SetLocation({ (LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatLeft",     10,   INIFileName),
+			(LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatTop",      10,   INIFileName),
+			(LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatRight",    410,  INIFileName),
+			(LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatBottom",   210,  INIFileName) });
+
+        OurWnd->SetFades((GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Fades",        0,    INIFileName) ? true:false));
+        OurWnd->SetAlpha(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Alpha",        255,  INIFileName));
+        OurWnd->SetFadeToAlpha(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "FadeToAlpha",  255,  INIFileName));
+        OurWnd->SetFadeDuration(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Duration",     500,  INIFileName));
+        OurWnd->SetLocked((GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Locked",       0,    INIFileName) ? true:false));
+        OurWnd->SetFadeDelay(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Delay",        2000, INIFileName));
+        OurWnd->SetBGType(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGType",       1,    INIFileName));
 		ARGBCOLOR col = { 0 };
 		col.A			        = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGTint.alpha",   255,  INIFileName);
         col.R			        = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGTint.red",   0,  INIFileName);
         col.G				    = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGTint.green", 0,  INIFileName);
         col.B					= GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGTint.blue",  0,  INIFileName);
-		OurWnd->BGColor = col.ARGB;
+		OurWnd->SetBGColor(col.ARGB);
         OurWnd->SetFontSize(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "FontSize",     2,    INIFileName));
 
         char szWindowText[MAX_STRING] = {0};
         GetPrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "WindowTitle", "Spawns", szWindowText, MAX_STRING, INIFileName);
-        SetCXStr(&OurWnd->WindowText, szWindowText);
+        OurWnd->CSetWindowText(szWindowText);
         ((CXWnd*)OurWnd)->Show(1, 1);
-        BitOff(OurWnd->OutStruct->WindowStyle, CWS_CLOSE);
+        OurWnd->OutStruct->RemoveStyle(CWS_CLOSE);
+        //BitOff(OurWnd->OutStruct->WindowStyle, CWS_CLOSE);
     }
 }
 
@@ -1575,7 +1577,7 @@ void WriteSpawn(PSPAWNINFO pFormatSpawn, char* szTypeString, char* szLocString, 
     char szProcessTemp[MAX_STRING] = {0};
     char szProcessTemp2[MAX_STRING] = {0};
 
-    bool bScrollDown = (OurWnd->OutWnd->VScrollPos == OurWnd->OutWnd->VScrollMax) ? true : false;
+    bool bScrollDown = (OurWnd->OutWnd->GetVScrollPos() == OurWnd->OutWnd->GetVScrollMax()) ? true : false;
     unsigned long ulColor = SpawnFormat->Color;
 
     //sprintf_s(szColoredSpawn, "[<c \"#%06X\"> %d %s %s</c> ] <<c \"#%06X\"> %s </c>> (<c \"#%06X\">%s</c>)", ulColor, pFormatSpawn->Level, pEverQuest->GetRaceDesc(pFormatSpawn->mActorClient.Race), GetClassDesc(pFormatSpawn->mActorClient.Class), ulColor, pFormatSpawn->DisplayedName, ulColor, szTypeString);
@@ -1660,7 +1662,7 @@ void WriteSpawn(PSPAWNINFO pFormatSpawn, char* szTypeString, char* szLocString, 
     (OurWnd->StmlOut)->AppendSTML(NewText);
     if (bScrollDown)
     {
-        (OurWnd->OutWnd)->SetVScrollPos(OurWnd->OutStruct->VScrollMax);
+        (OurWnd->OutWnd)->SetVScrollPos(OurWnd->OutStruct->GetVScrollMax());
     }
 }
 
