@@ -185,7 +185,7 @@ public:
     CXWnd *OutWnd;
     struct _CSIDLWND *OutStruct;
 
-    CSpawnWnd(CXStr *Template):CCustomWnd(Template)
+    CSpawnWnd(CXStr &Template):CCustomWnd(Template)
     {
         SetWndNotification(CSpawnWnd);
         StmlOut = (CStmlWnd *)GetChildItem("CW_ChatOutput");
@@ -282,8 +282,7 @@ void CreateOurWnd()
 {
     if (OurWnd == NULL)
     {
-        class CXStr ChatWnd("ChatWindow");
-        OurWnd = new CSpawnWnd(&ChatWnd);
+        OurWnd = new CSpawnWnd(CXStr("ChatWindow"));
 
 		OurWnd->SetLocation({ (LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatLeft",     10,   INIFileName),
 			(LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatTop",      10,   INIFileName),
