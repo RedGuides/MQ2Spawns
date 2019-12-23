@@ -193,8 +193,10 @@ public:
         OutWnd->SetClickable(1);
         OutStruct = (_CSIDLWND*)GetChildItem("CW_ChatOutput");
         OutStruct->SetClickable(0);
-        RemoveStyle(CWS_CLOSE);
+		SetWindowStyle(CWS_CLIENTMOVABLE | CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE);
+		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
         SetEscapable(0);
+		SetBGColor(0xFF000000);//black background
 		StmlOut->MaxLines = 400;
         //*(DWORD*)&(((PCHAR)StmlOut)[EQ_CHAT_HISTORY_OFFSET]) = 400;
     }
