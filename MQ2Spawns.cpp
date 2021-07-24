@@ -1,13 +1,10 @@
 // This plugin is intended for VIP members of MacroQuest2.com only
 // and may not be redistributed without permission of the author
 
-#include "../MQ2Plugin.h"
-using namespace std;
-#include <vector>
+#include <mq/Plugin.h>
 
-const char*  MODULE_NAME    = "MQ2Spawns";
-const double MODULE_VERSION = 11.0324;
-PreSetup(MODULE_NAME);
+PreSetup("MQ2Spawns");
+PLUGIN_VERSION(11.0324);
 
 const unsigned char ARG_SPAWN   = 1;
 const unsigned char ARG_DESPAWN = 2;
@@ -23,7 +20,7 @@ __time64_t tCurrentTime;
 bool bZoning = true;
 bool bLoaded = false;
 char szCharName[MAX_STRING] = {0};
-vector<string> SpawnFilters;
+std::vector<std::string> SpawnFilters;
 
 // added logging features
 char szDirPath[MAX_STRING]  = {0};
@@ -49,7 +46,7 @@ int StartLog()
     errno_t err = fopen_s(&fOurLog,szLogPath, "a+");
     if (err)
     {
-        WriteChatf("\ay%s\aw:: Unable to open log file. Check your file path and permissions. ( \ag%s \ax)", MODULE_NAME, szLogPath);
+        WriteChatf("\ay%s\aw:: Unable to open log file. Check your file path and permissions. ( \ag%s \ax)", mqplugin::PluginName, szLogPath);
         bLogActive = bLogReady = false;
         return LOG_FAIL;
     }
@@ -90,9 +87,9 @@ void WriteToLog(char* szWriteLine)
     errno_t err = fopen_s(&fOurLog,szLogPath, "a+");
     if (err)
     {
-        WriteChatf("\ay%s\aw:: Unable to open log file. Check your file path and permissions. ( \ag%s \ax)", MODULE_NAME, szLogPath);
+        WriteChatf("\ay%s\aw:: Unable to open log file. Check your file path and permissions. ( \ag%s \ax)", mqplugin::PluginName, szLogPath);
         bLogActive = bLogReady = false;
-        WriteChatf("\ay%s\aw:: Logging \arDISABLED\aw.", MODULE_NAME);
+        WriteChatf("\ay%s\aw:: Logging \arDISABLED\aw.", mqplugin::PluginName);
     }
     else
     {
@@ -216,7 +213,7 @@ public:
         struct FONTDATA
         {
             DWORD NumFonts;
-            PCHAR* Fonts; 
+            PCHAR* Fonts;
         };
         FONTDATA* Fonts;    // font array structure
         DWORD* SelFont;     // selected font
@@ -647,14 +644,14 @@ void HandleConfig(bool bSave)
 
         KillOurWnd(false);
     }
-    if (bLoaded) WriteChatf("\ay%s\aw:: Configuration file %s.", MODULE_NAME, bSave ? "saved" : "loaded");
+    if (bLoaded) WriteChatf("\ay%s\aw:: Configuration file %s.", mqplugin::PluginName, bSave ? "saved" : "loaded");
 }
 
 void WatchState(bool bSpawns)
 {
     char szOn[10] = "\agON\ax";
     char szOff[10] = "\arOFF\ax";
-    WriteChatf("\ay%s\aw:: %s - AutoSave(%s) Loc(%s) SpawnID(%s) Timestamp(%s) ZoneDelay(\ag%u\ax)", MODULE_NAME, CFG.ON ? szOn : szOff, CFG.AutoSave ? szOn : szOff, CFG.Location ? szOn : szOff, CFG.SpawnID ? szOn : szOff, CFG.Timestamp ? szOn : szOff, CFG.Delay);
+    WriteChatf("\ay%s\aw:: %s - AutoSave(%s) Loc(%s) SpawnID(%s) Timestamp(%s) ZoneDelay(\ag%u\ax)", mqplugin::PluginName, CFG.ON ? szOn : szOff, CFG.AutoSave ? szOn : szOff, CFG.Location ? szOn : szOff, CFG.SpawnID ? szOn : szOff, CFG.Timestamp ? szOn : szOff, CFG.Delay);
     if (bSpawns)
     {
         WriteChatf("\aw - \ayPC\ax: %s ( \ay%d\ax to \ay%d\ax ) - %06X", (CFG.PC.Despawn ? (CFG.PC.Spawn ? "Spawn & Despawn" : "Despawn Only") : (CFG.PC.Spawn ? "Spawn Only" : "OFF")), CFG.PC.MinLVL, CFG.PC.MaxLVL, CFG.PC.Color);
@@ -677,14 +674,14 @@ void WatchState(bool bSpawns)
         WriteChatf("\aw - \ayUNKNOWN\ax: %s ( \ay%d\ax to \ay%d\ax ) - %06X", (CFG.UNKNOWN.Despawn ? (CFG.UNKNOWN.Spawn ? "Spawn & Despawn" : "Despawn Only") : (CFG.UNKNOWN.Spawn ? "Spawn Only" : "OFF")), CFG.UNKNOWN.MinLVL, CFG.UNKNOWN.MaxLVL, CFG.UNKNOWN.Color);
         WriteChatf("\aw - \ayALL\ax: %s ( \ay%d\ax to \ay%d\ax ) - %06X", (CFG.ALL.Despawn ? (CFG.ALL.Spawn ? "Spawn & Despawn" : "Despawn Only") : (CFG.ALL.Spawn ? "Spawn Only" : "OFF")), CFG.ALL.MinLVL, CFG.ALL.MaxLVL, CFG.ALL.Color);
     }
-    if (CFG.ALL.Spawn || CFG.ALL.Despawn) WriteChatf("\ay%s\aw:: \ayOVERRIDE\ax - Currently announcing \agALL\ax types: %s", MODULE_NAME, (CFG.ALL.Despawn ? (CFG.ALL.Spawn ? "Spawn & Despawn" : "Despawn Only") : "Spawn Only"));
+    if (CFG.ALL.Spawn || CFG.ALL.Despawn) WriteChatf("\ay%s\aw:: \ayOVERRIDE\ax - Currently announcing \agALL\ax types: %s", mqplugin::PluginName, (CFG.ALL.Despawn ? (CFG.ALL.Spawn ? "Spawn & Despawn" : "Despawn Only") : "Spawn Only"));
 }
 
 void ToggleSetting(const char* pszToggleOutput, bool* pbSpawnTypeSet)
 {
     char szTheMsg[MAX_STRING] = {0};
     *pbSpawnTypeSet = !*pbSpawnTypeSet;
-    sprintf_s(szTheMsg, "\ay%s\aw:: %s %s", MODULE_NAME, *pbSpawnTypeSet ? "\agNow announcing\ax" : "\arNo longer announcing\ax", pszToggleOutput);
+    sprintf_s(szTheMsg, "\ay%s\aw:: %s %s", mqplugin::PluginName, *pbSpawnTypeSet ? "\agNow announcing\ax" : "\arNo longer announcing\ax", pszToggleOutput);
     WriteChatf(szTheMsg);
 }
 
@@ -693,7 +690,7 @@ void SetSpawnColor(const char* pszSetOutput, unsigned long* pulSpawnTypeSet, uns
     char szTheMsg[MAX_STRING] = {0};
     unsigned long ulOldColor = *pulSpawnTypeSet;
     *pulSpawnTypeSet = ulNewColor;
-    sprintf_s(szTheMsg, "\ay%s\aw:: %s color changed from \ay%06X\ax to \ag%06X\ax", MODULE_NAME, pszSetOutput, ulOldColor, ulNewColor);
+    sprintf_s(szTheMsg, "\ay%s\aw:: %s color changed from \ay%06X\ax to \ag%06X\ax", mqplugin::PluginName, pszSetOutput, ulOldColor, ulNewColor);
     WriteChatf(szTheMsg);
 }
 
@@ -702,7 +699,7 @@ void SetSpawnLevel(const char* pszSetOutput, int* piSpawnTypeSet, int iNewLevel)
     char szTheMsg[MAX_STRING] = {0};
     int iOldLevel = *piSpawnTypeSet;
     *piSpawnTypeSet = iNewLevel;
-    sprintf_s(szTheMsg, "\ay%s\aw:: %s level changed from \ay%d\ax to \ag%d\ax", MODULE_NAME, pszSetOutput, iOldLevel, iNewLevel);
+    sprintf_s(szTheMsg, "\ay%s\aw:: %s level changed from \ay%d\ax to \ag%d\ax", mqplugin::PluginName, pszSetOutput, iOldLevel, iNewLevel);
     WriteChatf(szTheMsg);
 }
 
@@ -733,7 +730,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
         int iNewSize = SpawnFilters.size();
         char szTempFilt[10] = {0};
         WritePrivateProfileString("Exclude", SafeItoa(iNewSize, szTempFilt, 10), szArg2, INIFileName);
-        WriteChatf("\ay%s\aw:: Added Exclude # \ay%d\ax: \ag%s", MODULE_NAME, iNewSize, szArg2);
+        WriteChatf("\ay%s\aw:: Added Exclude # \ay%d\ax: \ag%s", mqplugin::PluginName, iNewSize, szArg2);
         return;
     }
     // end of custom exclude addition
@@ -759,7 +756,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
                     iNewLevel = strtoul(szArg3, &pNotNum, 10);
                     if (iNewLevel < 1 || iNewLevel > MAX_NPC_LEVEL || *pNotNum)
                     {
-                        WriteChatf("\ay%s\aw:: \arLevel range must be between 1 and %u.", MODULE_NAME, MAX_NPC_LEVEL);
+                        WriteChatf("\ay%s\aw:: \arLevel range must be between 1 and %u.", mqplugin::PluginName, MAX_NPC_LEVEL);
                         return;
                     }
                 }
@@ -768,12 +765,12 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             {
                 if (ucArgType == ARG_COLOR)
                 {
-                    WriteChatf("\ay%s\aw:: \arYou must provide a hexadecimal color code.", MODULE_NAME);
+                    WriteChatf("\ay%s\aw:: \arYou must provide a hexadecimal color code.", mqplugin::PluginName);
                     return;
                 }
                 else if (ucArgType == ARG_MINLVL || ucArgType == ARG_MAXLVL)
                 {
-                    WriteChatf("\ay%s\aw:: \arLevel range must be between 1 and %u.", MODULE_NAME, MAX_NPC_LEVEL);
+                    WriteChatf("\ay%s\aw:: \arLevel range must be between 1 and %u.", mqplugin::PluginName, MAX_NPC_LEVEL);
                     return;
                 }
             }
@@ -847,7 +844,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
         int iValid = (int)strtoul(szArg2, &pNotNum, 10);
         if (iValid < 1 || *pNotNum)
         {
-            WriteChatf("\ay%s\aw:: \arError\ax - Delay must be a positive numerical value.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arError\ax - Delay must be a positive numerical value.", mqplugin::PluginName);
             return;
         }
         CFG.Delay = iValid;
@@ -859,7 +856,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
         int iValid = (int)strtoul(szArg2, &pNotNum, 10);
         if (iValid < 1 || *pNotNum)
         {
-            WriteChatf("\ay%s\aw:: \arError\ax - Font must be a positive numerical value.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arError\ax - Font must be a positive numerical value.", mqplugin::PluginName);
             return;
         }
         if (OurWnd) OurWnd->SetFontSize(iValid);
@@ -867,13 +864,13 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
     }
     else if (!_strnicmp(szArg1, "help", 5))
     {
-        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \agon\ax | \agoff\ax | \agspawnid\ax | \agloc\ax | \agtimestamp\ax ]", MODULE_NAME);
-        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \agsave\ax | \agload\ax | \agsavebychar\ax | \agstatus\ax | \agautosave\ax | \aghelp\ax ]", MODULE_NAME);
-        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \agclear\ax | \agmin\ax | \agfont #\ax ]", MODULE_NAME);
-        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \agdelay #\ax ] - Sets zone time delay.", MODULE_NAME);
-        WriteChatf("\ay%s\aw:: \ag/log\ax   [ \agon\ax | \agoff\ax | \agauto\ax | \agsetpath\ax <\aypath\ax> ]", MODULE_NAME);
-        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \aytogglename\ax ] [ \agspawn\ax | \agdespawn\ax | \agminlevel #\ax | \agmaxlevel #\ax | \agcolor RRGGBB\ax ]", MODULE_NAME);
-        WriteChatf("\ay%s\aw:: \agValid toggles:\ax all - pc - npc - mount - pet - merc - flyer - campfire - banner - aura - object - untargetable - chest - trap - timer - trigger - corpse - item - unknown", MODULE_NAME);
+        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \agon\ax | \agoff\ax | \agspawnid\ax | \agloc\ax | \agtimestamp\ax ]", mqplugin::PluginName);
+        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \agsave\ax | \agload\ax | \agsavebychar\ax | \agstatus\ax | \agautosave\ax | \aghelp\ax ]", mqplugin::PluginName);
+        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \agclear\ax | \agmin\ax | \agfont #\ax ]", mqplugin::PluginName);
+        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \agdelay #\ax ] - Sets zone time delay.", mqplugin::PluginName);
+        WriteChatf("\ay%s\aw:: \ag/log\ax   [ \agon\ax | \agoff\ax | \agauto\ax | \agsetpath\ax <\aypath\ax> ]", mqplugin::PluginName);
+        WriteChatf("\ay%s\aw:: \ag/spawn\ax [ \aytogglename\ax ] [ \agspawn\ax | \agdespawn\ax | \agminlevel #\ax | \agmaxlevel #\ax | \agcolor RRGGBB\ax ]", mqplugin::PluginName);
+        WriteChatf("\ay%s\aw:: \agValid toggles:\ax all - pc - npc - mount - pet - merc - flyer - campfire - banner - aura - object - untargetable - chest - trap - timer - trigger - corpse - item - unknown", mqplugin::PluginName);
     }
     else if (!_strnicmp(szArg1, "all", 4))
     {
@@ -895,7 +892,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("ALL TYPES color", &CFG.ALL.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "pc", 3))
@@ -918,7 +915,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("PC color", &CFG.PC.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "npc", 4))
@@ -941,7 +938,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("NPC color", &CFG.NPC.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "mount", 6))
@@ -964,7 +961,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("MOUNT color", &CFG.MOUNT.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "pet", 4))
@@ -987,7 +984,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("PET color", &CFG.PET.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "merc", 5))
@@ -1010,7 +1007,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("MERCENARY color", &CFG.MERCENARY.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "flyer", 6))
@@ -1033,7 +1030,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("FLYER color", &CFG.FLYER.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "campfire", 9))
@@ -1056,7 +1053,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("CAMPFIRE color", &CFG.CAMPFIRE.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "banner", 7))
@@ -1079,7 +1076,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("BANNER color", &CFG.BANNER.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "aura", 5))
@@ -1102,7 +1099,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("AURA color", &CFG.AURA.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "object", 7))
@@ -1125,7 +1122,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("OBJECT color", &CFG.OBJECT.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "untargetable", 14))
@@ -1148,7 +1145,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("UNTARGETABLE color", &CFG.UNTARGETABLE.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "chest", 6))
@@ -1171,7 +1168,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("CHEST color", &CFG.CHEST.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "trap", 5))
@@ -1194,7 +1191,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("TRAP color", &CFG.TRAP.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "timer", 6))
@@ -1217,7 +1214,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("TIMER color", &CFG.TIMER.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "trigger", 8))
@@ -1240,7 +1237,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("TRIGGER color", &CFG.TRIGGER.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "corpse", 7))
@@ -1263,7 +1260,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("CORPSE color", &CFG.CORPSE.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "item", 5))
@@ -1286,7 +1283,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("ITEM color", &CFG.ITEM.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     else if (!_strnicmp(szArg1, "unknown", 7))
@@ -1309,7 +1306,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
             SetSpawnColor("UNKNOWN color", &CFG.UNKNOWN.Color, ulNewColor);
             break;
         default:
-            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: \arInvalid parameter. Use \ag/spawn help\ax.", mqplugin::PluginName);
         }
     }
     // added logging 2010-09-04
@@ -1317,7 +1314,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
     {
         if (!*szArg2)
         {
-            WriteChatf("\ay%s\aw:: %s - Usage - \aglog\aw [ \ayon\ax | \ayoff\ax | \ayauto\ax | \aysetpath\ax <\aypath\ax> ]", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: %s - Usage - \aglog\aw [ \ayon\ax | \ayoff\ax | \ayauto\ax | \aysetpath\ax <\aypath\ax> ]", mqplugin::PluginName);
             return;
         }
 
@@ -1325,42 +1322,42 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
         {
             if (bLogActive)
             {
-                WriteChatf("\ay%s\aw:: \arLogging already active\aw.", MODULE_NAME);
+                WriteChatf("\ay%s\aw:: \arLogging already active\aw.", mqplugin::PluginName);
                 return;
             }
 
             bLogCmdUsed = bLogActive = true;
             if (StartLog())
             {
-                WriteChatf("\ay%s\aw:: Logging \agENABLED\aw.", MODULE_NAME);
+                WriteChatf("\ay%s\aw:: Logging \agENABLED\aw.", mqplugin::PluginName);
             }
             else
             {
-                WriteChatf("\ay%s\aw:: Logging \arDISABLED\aw.", MODULE_NAME);
+                WriteChatf("\ay%s\aw:: Logging \arDISABLED\aw.", mqplugin::PluginName);
             }
         }
         else if (!_strnicmp(szArg2, "off", 4))
         {
             if (!bLogActive)
             {
-                WriteChatf("\ay%s\aw:: \arLogging not currently active\aw.", MODULE_NAME);
+                WriteChatf("\ay%s\aw:: \arLogging not currently active\aw.", mqplugin::PluginName);
                 return;
             }
             EndLog();
             bLogCmdUsed = bLogActive = bLogReady = false;
-            WriteChatf("\ay%s\aw:: Logging \arDISABLED\aw.", MODULE_NAME);
+            WriteChatf("\ay%s\aw:: Logging \arDISABLED\aw.", mqplugin::PluginName);
         }
         else if (!_strnicmp(szArg2, "auto", 5))
         {
             CFG.Logging = !CFG.Logging;
             WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Settings", "Logging", CFG.Logging ? "on" : "off", INIFileName);
-            WriteChatf("\ay%s\aw:: Automatic logging %s", MODULE_NAME, CFG.Logging ? "\agENABLED" : "\arDISABLED");
+            WriteChatf("\ay%s\aw:: Automatic logging %s", mqplugin::PluginName, CFG.Logging ? "\agENABLED" : "\arDISABLED");
         }
         else if (!_strnicmp(szArg2, "setpath", 8))
         {
             if (!*szArg3)
             {
-                WriteChatf("\ay%s\aw:: \arYou must specify a path\aw.", MODULE_NAME);
+                WriteChatf("\ay%s\aw:: \arYou must specify a path\aw.", mqplugin::PluginName);
                 return;
             }
 
@@ -1378,13 +1375,13 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
                 sprintf_s(szLogPath, "%s\\%s", szDirPath, szLogFile);
             }
             WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Settings", "LogPath", szDirPath, INIFileName);
-            WriteChatf("\ay%s\aw:: Log folder path set to \ag%s", MODULE_NAME, szDirPath);
+            WriteChatf("\ay%s\aw:: Log folder path set to \ag%s", mqplugin::PluginName, szDirPath);
         }
     }
     // end of logging
     else
     {
-        WriteChatf("\ay%s\aw:: Invalid parameter. Use \ag/spawn help\ax for valid options.", MODULE_NAME);
+        WriteChatf("\ay%s\aw:: Invalid parameter. Use \ag/spawn help\ax for valid options.", mqplugin::PluginName);
         return;
     }
 
@@ -1475,7 +1472,7 @@ void ToggleSpawns(PSPAWNINFO pLPlayer, char* szLine)
     }
     else
     {
-        WriteChatf("\ay%s\aw:: Invalid parameter. Use \ag/spawn help\ax for valid toggles.", MODULE_NAME);
+        WriteChatf("\ay%s\aw:: Invalid parameter. Use \ag/spawn help\ax for valid toggles.", mqplugin::PluginName);
     }
 }
 
@@ -1562,7 +1559,7 @@ void ToggleDespawns(PSPAWNINFO pLPlayer, char* szLine)
     }
     else
     {
-        WriteChatf("\ay%s\aw:: Invalid parameter. Use \ag/spawn help\ax for valid toggles.", MODULE_NAME);
+        WriteChatf("\ay%s\aw:: Invalid parameter. Use \ag/spawn help\ax for valid toggles.", mqplugin::PluginName);
     }
 }
 
@@ -1689,9 +1686,9 @@ void CheckOurType(PSPAWNINFO pNewSpawn, bool bSpawn)
     // add exclude list
     if (pNewSpawn->DisplayedName[0])
     {
-        for (vector<string>::iterator it = SpawnFilters.begin() ; it != SpawnFilters.end(); it++)
+        for (std::vector<std::string>::iterator it = SpawnFilters.begin() ; it != SpawnFilters.end(); it++)
         {
-            string sFilter = *it;
+            std::string sFilter = *it;
             char szTempName[MAX_STRING] = {0};
             strcpy_s(szTempName, pNewSpawn->DisplayedName);
             _strlwr_s(szTempName);
