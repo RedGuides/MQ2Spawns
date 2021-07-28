@@ -1,6 +1,3 @@
-// This plugin is intended for VIP members of MacroQuest2.com only
-// and may not be redistributed without permission of the author
-
 #include <mq/Plugin.h>
 
 PreSetup("MQ2Spawns");
@@ -174,27 +171,22 @@ CSpawnCFG CFG;
 
 // UI window
 class CSpawnWnd;
-CSpawnWnd* OurWnd = NULL;
+CSpawnWnd* OurWnd = nullptr;
+
 class CSpawnWnd : public CCustomWnd
 {
 public:
-	CStmlWnd *StmlOut;
-	CXWnd *OutWnd;
-	struct _CSIDLWND *OutStruct;
+	CStmlWnd* OutWnd;
 
 	CSpawnWnd(CXStr &Template):CCustomWnd(Template)
 	{
-		SetWndNotification(CSpawnWnd);
-		StmlOut = (CStmlWnd *)GetChildItem("CW_ChatOutput");
-		OutWnd = (CXWnd*)StmlOut;
+		OutWnd = (CStmlWnd*)GetChildItem("CW_ChatOutput");
 		OutWnd->SetClickable(1);
-		OutStruct = (_CSIDLWND*)GetChildItem("CW_ChatOutput");
-		OutStruct->SetClickable(0);
 		SetWindowStyle(CWS_CLIENTMOVABLE | CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE);
 		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
 		SetEscapable(0);
 		SetBGColor(0xFF000000);//black background
-		StmlOut->MaxLines = 400;
+		OutWnd->MaxLines = 400;
 		//*(DWORD*)&(((PCHAR)StmlOut)[EQ_CHAT_HISTORY_OFFSET]) = 400;
 	}
 
@@ -208,37 +200,24 @@ public:
 		return CSidlScreenWnd::WndNotification(pWnd,Message,data);
 	};
 
-	void SetFontSize(unsigned int size)
+	void SetFontSize(int uiSize)
 	{
-		struct FONTDATA
-		{
-			DWORD NumFonts;
-			PCHAR* Fonts;
-		};
-		FONTDATA* Fonts;    // font array structure
-		DWORD* SelFont; 	// selected font
-		Fonts = (FONTDATA*)&(((char*)pWndMgr)[EQ_CHAT_FONT_OFFSET]);
-
-		if (size < 0 || size >= (int) Fonts->NumFonts)
-		{
+		if (uiSize < 0 || uiSize > pWndMgr->FontsArray.GetCount())
 			return;
-		}
-		if (Fonts->Fonts == NULL || OurWnd == NULL)
-		{
-			return;
-		}
 
-		SelFont = (DWORD*)Fonts->Fonts[size];
-		CXStr str(((CStmlWnd*)OurWnd->OutWnd)->GetSTMLText());
-		((CXWnd*)OurWnd->OutWnd)->SetFont(SelFont);
-		((CStmlWnd*)OurWnd->OutWnd)->SetSTMLText(str, 1, 0);
-		((CStmlWnd*)OurWnd->OutWnd)->ForceParseNow();
-		DebugTry(((CXWnd*)OurWnd->OutWnd)->SetVScrollPos(OurWnd->OutWnd->GetVScrollMax()));
-		OurWnd->FontSize = size;
+		CXStr ContStr(OurWnd->OutWnd->GetSTMLText());
+		OurWnd->OutWnd->SetFont(pWndMgr->FontsArray[uiSize]);
+		OurWnd->OutWnd->SetSTMLText(ContStr, 1, 0);
+		OurWnd->OutWnd->ForceParseNow();
+		OurWnd->OutWnd->SetVScrollPos(OurWnd->OutWnd->GetVScrollMax());
+
+		FontSize = uiSize;
 	};
 
 	unsigned long FontSize;
 };
+
+// FIXME:  This isn't needed, you can just to_string anything you need.
 template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
 {
 	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
@@ -247,9 +226,10 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 	}
 	return "";
 }
+
 void SaveOurWnd()
 {
-	PCSIDLWND UseWnd = (PCSIDLWND)OurWnd;
+	CSidlScreenWnd* UseWnd = OurWnd;
 	if (!UseWnd || !OurWnd) return;
 
 	char szTemp[MAX_STRING]               = {0};
@@ -273,8 +253,7 @@ void SaveOurWnd()
 	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.blue",  SafeItoa(col.B,       szTemp, 10), INIFileName);
 	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "FontSize",     SafeItoa(OurWnd->FontSize,   szTemp, 10), INIFileName);
 
-	GetCXStr(UseWnd->CGetWindowText(), szTemp);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "WindowTitle", szTemp, INIFileName);
+	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "WindowTitle", UseWnd->GetWindowText().c_str(), INIFileName);
 }
 
 void CreateOurWnd()
@@ -305,9 +284,9 @@ void CreateOurWnd()
 
 		char szWindowText[MAX_STRING] = {0};
 		GetPrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "WindowTitle", "Spawns", szWindowText, MAX_STRING, INIFileName);
-		OurWnd->CSetWindowText(szWindowText);
-		        ((CXWnd*)OurWnd)->Show(1, 1);
-		OurWnd->OutStruct->RemoveStyle(CWS_CLOSE);
+		OurWnd->SetWindowText(szWindowText);
+		OurWnd->Show(true, true);
+		OurWnd->RemoveStyle(CWS_CLOSE);
 		//BitOff(OurWnd->OutStruct->WindowStyle, CWS_CLOSE);
 	}
 }
@@ -466,7 +445,7 @@ void HandleConfig(bool bSave)
 		//logging addition
 		GetPrivateProfileString(CFG.SaveByChar ? szCharName : "Settings", "Logging", CFG.Logging ? "on" : "off", szLoad, MAX_STRING, INIFileName);
 		CFG.Logging    = (!_strnicmp(szLoad, "on", 3));
-		GetPrivateProfileString(CFG.SaveByChar ? szCharName : "Settings", "LogPath", gszINIPath,              szDirPath, MAX_STRING, INIFileName);
+		GetPrivateProfileString(CFG.SaveByChar ? szCharName : "Settings", "LogPath", gPathConfig,              szDirPath, MAX_STRING, INIFileName);
 		sprintf_s(szLogPath, "%s\\%s", szDirPath, szLogFile);
 		if (CFG.Logging) bLogActive = true;
 		// end of logging
@@ -1657,10 +1636,10 @@ void WriteSpawn(PSPAWNINFO pFormatSpawn, char* szTypeString, char* szLocString, 
 	strcat_s(szFinalOutput,"<br>");
 	((CXWnd*)OurWnd)->Show(1, 1);
 	CXStr NewText(szFinalOutput);
-	(OurWnd->StmlOut)->AppendSTML(NewText);
+	OurWnd->OutWnd->AppendSTML(NewText);
 	if (bScrollDown)
 	{
-		(OurWnd->OutWnd)->SetVScrollPos(OurWnd->OutStruct->GetVScrollMax());
+		(OurWnd->OutWnd)->SetVScrollPos(OurWnd->OutWnd->GetVScrollMax());
 	}
 }
 
