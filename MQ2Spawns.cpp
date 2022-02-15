@@ -706,7 +706,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
 	{
 		_strlwr_s(szArg2);
 		SpawnFilters.push_back(szArg2);
-		int iNewSize = SpawnFilters.size();
+		int iNewSize = (int)SpawnFilters.size();
 		char szTempFilt[10] = {0};
 		WritePrivateProfileString("Exclude", SafeItoa(iNewSize, szTempFilt, 10), szArg2, INIFileName);
 		WriteChatf("\ay%s\aw:: Added Exclude # \ay%d\ax: \ag%s", mqplugin::PluginName, iNewSize, szArg2);
