@@ -784,7 +784,7 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
 	else if (!_strnicmp(szArg1, "savebychar", 11))
 	{
 		CFG.SaveByChar = !CFG.SaveByChar;
-		sprintf_s(szCharName, "%s.%s", EQADDR_SERVERNAME, ((PCHARINFO)pCharData)->Name);
+		sprintf_s(szCharName, "%s.%s", GetServerShortName(), pLocalPC->Name);
 		WatchState(false);
 	}
 	else if (!_strnicmp(szArg1, "autosave", 9))
@@ -1814,8 +1814,8 @@ PLUGIN_API void SetGameState(unsigned long ulGameState)
 
 	if (ulGameState == GAMESTATE_INGAME)
 	{
-		sprintf_s(szLogFile, "MQ2Spawns-%s.log", GetShortZone(((PSPAWNINFO)pLocalPlayer)->GetZoneID()));
-		sprintf_s(szCharName, "%s.%s", EQADDR_SERVERNAME, ((PCHARINFO)pCharData)->Name);
+		sprintf_s(szLogFile, "MQ2Spawns-%s.log", GetShortZone(pLocalPlayer->GetZoneID()));
+		sprintf_s(szCharName, "%s.%s", GetServerShortName(), pLocalPC->Name);
 		sprintf_s(szLogPath, "%s\\%s", szDirPath, szLogFile);
 		CreateOurWnd();
 		tSeconds = time(NULL);
@@ -1847,7 +1847,7 @@ PLUGIN_API void OnReloadUI()
 {
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		sprintf_s(szCharName, "%s.%s", EQADDR_SERVERNAME, ((PCHARINFO)pCharData)->Name);
+		sprintf_s(szCharName, "%s.%s", GetServerShortName(), pLocalPC->Name);
 		CreateOurWnd();
 	}
 }
