@@ -40,8 +40,8 @@ enum
 
 int StartLog()
 {
-	errno_t err = fopen_s(&fOurLog,szLogPath, "a+");
-	if (err)
+	fOurLog = _fsopen(szLogPath, "a+", _SH_DENYWR);
+	if (!fOurLog)
 	{
 		WriteChatf("\ay%s\aw:: Unable to open log file. Check your file path and permissions. ( \ag%s \ax)", mqplugin::PluginName, szLogPath);
 		bLogActive = bLogReady = false;
@@ -63,8 +63,8 @@ int StartLog()
 
 int EndLog()
 {
-	errno_t err = fopen_s(&fOurLog, szLogPath, "a+");
-	if (!err)
+	fOurLog = _fsopen(szLogPath, "a+", _SH_DENYWR);
+	if (fOurLog)
 	{
 		char szTemp[MAX_STRING] = {0};
 		time(&rawtime);
@@ -81,8 +81,8 @@ int EndLog()
 
 void WriteToLog(char* szWriteLine)
 {
-	errno_t err = fopen_s(&fOurLog,szLogPath, "a+");
-	if (err)
+	fOurLog = _fsopen(szLogPath, "a+", _SH_DENYWR);
+	if (!fOurLog)
 	{
 		WriteChatf("\ay%s\aw:: Unable to open log file. Check your file path and permissions. ( \ag%s \ax)", mqplugin::PluginName, szLogPath);
 		bLogActive = bLogReady = false;
