@@ -181,7 +181,7 @@ public:
 	CSpawnWnd(CXStr &Template):CCustomWnd(Template)
 	{
 		OutWnd = (CStmlWnd*)GetChildItem("CW_ChatOutput");
-		OutWnd->SetClickable(1);
+		OutWnd->SetClickThrough(true);
 		SetWindowStyle(CWS_CLIENTMOVABLE | CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE);
 		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
 		SetEscapable(0);
