@@ -176,128 +176,120 @@ CSpawnWnd* OurWnd = nullptr;
 class CSpawnWnd : public CCustomWnd
 {
 public:
-	CStmlWnd* OutWnd;
-
-	CSpawnWnd(CXStr &Template):CCustomWnd(Template)
+	explicit CSpawnWnd(const CXStr& Template) : CCustomWnd(Template)
 	{
-		OutWnd = (CStmlWnd*)GetChildItem("CW_ChatOutput");
-		OutWnd->SetClickThrough(true);
+		m_stmlWnd = static_cast<CStmlWnd*>(GetChildItem("CW_ChatOutput"));
+		m_stmlWnd->SetClickThrough(true);
 		SetWindowStyle(CWS_CLIENTMOVABLE | CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE);
 		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
-		SetEscapable(0);
-		SetBGColor(0xFF000000);//black background
-		OutWnd->MaxLines = 400;
-		//*(DWORD*)&(((PCHAR)StmlOut)[EQ_CHAT_HISTORY_OFFSET]) = 400;
+		SetEscapable(false);
+		SetBGColor(0xFF000000); // black background
+		m_stmlWnd->MaxLines = 400;
 	}
 
-	int WndNotification(CXWnd *pWnd, unsigned int Message, void *data)
+	int WndNotification(CXWnd* pWnd, unsigned int Message, void* data) override
 	{
-		if (pWnd == NULL && Message == XWM_CLOSE)
+		if (pWnd == nullptr && Message == XWM_CLOSE)
 		{
-			SetVisible(1);
+			SetVisible(true);
 			return 0;
 		}
 		return CSidlScreenWnd::WndNotification(pWnd,Message,data);
-	};
+	}
 
-	void SetFontSize(int uiSize)
+	void SetFontSize(int fontSize)
 	{
-		if (uiSize < 0 || uiSize > pWndMgr->FontsArray.GetCount())
+		if (fontSize < 0 || fontSize > pWndMgr->FontsArray.GetCount())
 			return;
 
-		CXStr ContStr(OurWnd->OutWnd->GetSTMLText());
-		OurWnd->OutWnd->SetFont(pWndMgr->FontsArray[uiSize]);
-		OurWnd->OutWnd->SetSTMLText(ContStr, 1, 0);
-		OurWnd->OutWnd->ForceParseNow();
-		OurWnd->OutWnd->SetVScrollPos(OurWnd->OutWnd->GetVScrollMax());
+		CXStr text = OurWnd->m_stmlWnd->GetSTMLText();
+		OurWnd->m_stmlWnd->SetFont(pWndMgr->FontsArray[fontSize]);
+		OurWnd->m_stmlWnd->SetSTMLText(text);
+		OurWnd->m_stmlWnd->ForceParseNow();
+		OurWnd->m_stmlWnd->SetVScrollPos(OurWnd->m_stmlWnd->GetVScrollMax());
 
-		FontSize = uiSize;
-	};
-
-	unsigned long FontSize;
-};
-
-// FIXME:  This isn't needed, you can just to_string anything you need.
-template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
-{
-	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
-	if (!err) {
-		return _Buffer;
+		m_fontSize = fontSize;
 	}
-	return "";
-}
+
+	int m_fontSize = 2;
+	CStmlWnd* m_stmlWnd = nullptr;
+};
 
 void SaveOurWnd()
 {
 	CSidlScreenWnd* UseWnd = OurWnd;
 	if (!UseWnd || !OurWnd) return;
 
-	char szTemp[MAX_STRING]               = {0};
+	const char* sectionName = CFG.SaveByChar ? szCharName : "Window";
 
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatTop",      SafeItoa(UseWnd->GetLocation().top,    szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatBottom",   SafeItoa(UseWnd->GetLocation().bottom, szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatLeft",     SafeItoa(UseWnd->GetLocation().left,   szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "ChatRight",    SafeItoa(UseWnd->GetLocation().right,  szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Fades",        SafeItoa(UseWnd->GetFades(),           szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Alpha",        SafeItoa(UseWnd->GetAlpha(),           szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "FadeToAlpha",  SafeItoa(UseWnd->GetFadeToAlpha(),     szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Duration",     SafeItoa(UseWnd->GetFadeDuration(),    szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Locked",       SafeItoa(UseWnd->IsLocked(),          szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "Delay",        SafeItoa(UseWnd->GetFadeDelay(),   szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGType",       SafeItoa(UseWnd->GetBGType(),          szTemp, 10), INIFileName);
-	ARGBCOLOR col = { 0 };
+	WritePrivateProfileInt(sectionName,  "ChatTop",      UseWnd->GetLocation().top,    INIFileName);
+	WritePrivateProfileInt(sectionName,  "ChatBottom",   UseWnd->GetLocation().bottom, INIFileName);
+	WritePrivateProfileInt(sectionName,  "ChatLeft",     UseWnd->GetLocation().left,   INIFileName);
+	WritePrivateProfileInt(sectionName,  "ChatRight",    UseWnd->GetLocation().right,  INIFileName);
+	WritePrivateProfileBool(sectionName, "Fades",        UseWnd->GetFades(),           INIFileName);
+	WritePrivateProfileInt(sectionName,  "Alpha",        UseWnd->GetAlpha(),           INIFileName);
+	WritePrivateProfileInt(sectionName,  "FadeToAlpha",  UseWnd->GetFadeToAlpha(),     INIFileName);
+	WritePrivateProfileInt(sectionName,  "Duration",     UseWnd->GetFadeDuration(),    INIFileName);
+	WritePrivateProfileBool(sectionName, "Locked",       UseWnd->IsLocked(),           INIFileName);
+	WritePrivateProfileInt(sectionName,  "Delay",        UseWnd->GetFadeDelay(),       INIFileName);
+	WritePrivateProfileInt(sectionName,  "BGType",       UseWnd->GetBGType(),          INIFileName);
+
+	ARGBCOLOR col;
 	col.ARGB = UseWnd->GetBGColor();
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.alpha",   SafeItoa(col.A,       szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.red",   SafeItoa(col.R,       szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.green", SafeItoa(col.G,       szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "BGTint.blue",  SafeItoa(col.B,       szTemp, 10), INIFileName);
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "FontSize",     SafeItoa(OurWnd->FontSize,   szTemp, 10), INIFileName);
+	WritePrivateProfileInt(sectionName, "BGTint.alpha",  col.A,                        INIFileName);
+	WritePrivateProfileInt(sectionName, "BGTint.red",    col.R,                        INIFileName);
+	WritePrivateProfileInt(sectionName, "BGTint.green",  col.G,                        INIFileName);
+	WritePrivateProfileInt(sectionName, "BGTint.blue",   col.B,                        INIFileName);
+	WritePrivateProfileInt(sectionName, "FontSize",      OurWnd->m_fontSize,           INIFileName);
 
-	WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "WindowTitle", UseWnd->GetWindowText().c_str(), INIFileName);
+	WritePrivateProfileString(sectionName, "WindowTitle", UseWnd->GetWindowText().c_str(), INIFileName);
 }
 
 void CreateOurWnd()
 {
-	if (OurWnd == NULL)
-	{
-		OurWnd = new CSpawnWnd(CXStr("ChatWindow"));
+	if (OurWnd != nullptr)
+		return;
 
-		OurWnd->SetLocation({ (LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatLeft",     10,   INIFileName),
-			(LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatTop",      10,   INIFileName),
-			(LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatRight",    410,  INIFileName),
-			(LONG)GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "ChatBottom",   210,  INIFileName) });
+	OurWnd = new CSpawnWnd("ChatWindow");
+	const char* sectionName = CFG.SaveByChar ? szCharName : "Window";
 
-		OurWnd->SetFades((GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Fades",        0,    INIFileName) ? true:false));
-		OurWnd->SetAlpha(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Alpha",        255,  INIFileName));
-		OurWnd->SetFadeToAlpha(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "FadeToAlpha",  255,  INIFileName));
-		OurWnd->SetFadeDuration(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Duration",     500,  INIFileName));
-		OurWnd->SetLocked((GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Locked",       0,    INIFileName) ? true:false));
-		OurWnd->SetFadeDelay(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "Delay",        2000, INIFileName));
-		OurWnd->SetBGType(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGType",       1,    INIFileName));
-		ARGBCOLOR col = { 0 };
-		col.A = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGTint.alpha",   255,  INIFileName);
-		col.R = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGTint.red",   0,  INIFileName);
-		col.G = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGTint.green", 0,  INIFileName);
-		col.B = GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "BGTint.blue",  0,  INIFileName);
-		OurWnd->SetBGColor(col.ARGB);
-		OurWnd->SetFontSize(GetPrivateProfileInt(CFG.SaveByChar ? szCharName : "Window", "FontSize",     2,    INIFileName));
+	OurWnd->SetLocation({
+		GetPrivateProfileInt(sectionName, "ChatLeft", 10, INIFileName),
+		GetPrivateProfileInt(sectionName, "ChatTop", 10, INIFileName),
+		GetPrivateProfileInt(sectionName, "ChatRight", 410, INIFileName),
+		GetPrivateProfileInt(sectionName, "ChatBottom", 210, INIFileName)
+	});
+	OurWnd->SetFades(GetPrivateProfileBool(sectionName, "Fades", false, INIFileName));
+	OurWnd->SetAlpha(static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "Alpha", 255, INIFileName)));
+	OurWnd->SetFadeToAlpha(static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "FadeToAlpha", 255, INIFileName)));
+	OurWnd->SetFadeDuration(GetPrivateProfileInt(sectionName, "Duration", 500, INIFileName));
+	OurWnd->SetLocked(GetPrivateProfileBool(sectionName, "Locked", false, INIFileName));
+	OurWnd->SetFadeDelay(GetPrivateProfileInt(sectionName, "Delay", 2000, INIFileName));
+	OurWnd->SetBGType(GetPrivateProfileInt(sectionName, "BGType", 1, INIFileName));
 
-		char szWindowText[MAX_STRING] = {0};
-		GetPrivateProfileString(CFG.SaveByChar ? szCharName : "Window", "WindowTitle", "Spawns", szWindowText, MAX_STRING, INIFileName);
-		OurWnd->SetWindowText(szWindowText);
-		OurWnd->Show(true, true);
-		OurWnd->RemoveStyle(CWS_CLOSE);
-		//BitOff(OurWnd->OutStruct->WindowStyle, CWS_CLOSE);
-	}
+	ARGBCOLOR col;
+	col.A = static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "BGTint.alpha", 255, INIFileName));
+	col.R = static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "BGTint.red", 0, INIFileName));
+	col.G = static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "BGTint.green", 0, INIFileName));
+	col.B = static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "BGTint.blue", 0, INIFileName));
+	OurWnd->SetBGColor(col.ARGB);
+	OurWnd->SetFontSize(GetPrivateProfileInt(sectionName, "FontSize", 2, INIFileName));
+
+	char szWindowText[MAX_STRING] = {0};
+	GetPrivateProfileString(sectionName, "WindowTitle", "Spawns", szWindowText, MAX_STRING, INIFileName);
+	OurWnd->SetWindowText(szWindowText);
+	OurWnd->Show(true, true);
+	OurWnd->RemoveStyle(CWS_CLOSE);
 }
 
 void KillOurWnd(bool bSave)
 {
 	if (OurWnd)
 	{
-		if (bSave) SaveOurWnd();
+		if (bSave)
+			SaveOurWnd();
 		delete OurWnd;
-		OurWnd = NULL;
+		OurWnd = nullptr;
 	}
 }
 
@@ -312,113 +304,112 @@ void HandleConfig(bool bSave)
 	if (bSave)
 	{
 		char szSave[MAX_STRING] = {0};
-		WritePrivateProfileString("Settings",  "AutoSave",   CFG.AutoSave             ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("Settings",  "Delay",      SafeItoa((int)CFG.Delay,           szSave, 10), INIFileName);
-		WritePrivateProfileString("Settings",  "Enabled",    CFG.ON                   ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("Settings",  "SaveByChar", CFG.SaveByChar           ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("Settings",  "ShowLoc",    CFG.Location             ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("Settings",  "SpawnID",    CFG.SpawnID              ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("Settings",  "Timestamp",  CFG.Timestamp            ? "on" : "off",    INIFileName);
+		WritePrivateProfileBool("Settings", "AutoSave", CFG.AutoSave, INIFileName);
+		WritePrivateProfileInt("Settings", "Delay", CFG.Delay, INIFileName);
+		WritePrivateProfileBool("Settings", "Enabled", CFG.ON, INIFileName);
+		WritePrivateProfileBool("Settings", "SaveByChar", CFG.SaveByChar, INIFileName);
+		WritePrivateProfileBool("Settings", "ShowLoc", CFG.Location, INIFileName);
+		WritePrivateProfileBool("Settings", "SpawnID", CFG.SpawnID, INIFileName);
+		WritePrivateProfileBool("Settings", "Timestamp", CFG.Timestamp, INIFileName);
 
-		// logging uses savebychar at dewey's request
-		WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Settings",  "Logging",    CFG.Logging ? "on" : "off",    INIFileName);
-		WritePrivateProfileString(CFG.SaveByChar ? szCharName : "Settings",  "LogPath",    szDirPath,                     INIFileName);
-		// end of logging
+		const char* key = CFG.SaveByChar ? szCharName : "Settings";
+		WritePrivateProfileBool(key, "Logging", CFG.Logging, INIFileName);
+		WritePrivateProfileString(key, "LogPath", szDirPath, INIFileName);
 
 		WritePrivateProfileString("ALL",          "Spawn",   CFG.ALL.Spawn            ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("ALL",          "Despawn", CFG.ALL.Despawn          ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("ALL",          "MinLVL",  SafeItoa(CFG.ALL.MinLVL,           szSave, 10), INIFileName);
-		WritePrivateProfileString("ALL",          "MaxLVL",  SafeItoa(CFG.ALL.MaxLVL,           szSave, 10), INIFileName);
+		WritePrivateProfileInt("ALL",          "MinLVL",  CFG.ALL.MinLVL, INIFileName);
+		WritePrivateProfileInt("ALL",          "MaxLVL",  CFG.ALL.MaxLVL, INIFileName);
 		WritePrivateProfileString("ALL",          "Color",   itohex(CFG.ALL.Color,          szSave),     INIFileName);
 		WritePrivateProfileString("PC",           "Spawn",   CFG.PC.Spawn             ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("PC",           "Despawn", CFG.PC.Despawn           ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("PC",           "MinLVL",  SafeItoa(CFG.PC.MinLVL,            szSave, 10), INIFileName);
-		WritePrivateProfileString("PC",           "MaxLVL",  SafeItoa(CFG.PC.MaxLVL,            szSave, 10), INIFileName);
+		WritePrivateProfileInt("PC",           "MinLVL",  CFG.PC.MinLVL, INIFileName);
+		WritePrivateProfileInt("PC",           "MaxLVL",  CFG.PC.MaxLVL, INIFileName);
 		WritePrivateProfileString("PC",           "Color",   itohex(CFG.PC.Color,           szSave),     INIFileName);
 		WritePrivateProfileString("NPC",          "Spawn",   CFG.NPC.Spawn            ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("NPC",          "Despawn", CFG.NPC.Despawn          ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("NPC",          "MinLVL",  SafeItoa(CFG.NPC.MinLVL,          szSave, 10),  INIFileName);
-		WritePrivateProfileString("NPC",          "MaxLVL",  SafeItoa(CFG.NPC.MaxLVL,          szSave, 10),  INIFileName);
+		WritePrivateProfileInt("NPC",          "MinLVL",  CFG.NPC.MinLVL,  INIFileName);
+		WritePrivateProfileInt("NPC",          "MaxLVL",  CFG.NPC.MaxLVL,  INIFileName);
 		WritePrivateProfileString("NPC",          "Color",   itohex(CFG.NPC.Color,         szSave),      INIFileName);
 		WritePrivateProfileString("MOUNT",        "Spawn",   CFG.MOUNT.Spawn          ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("MOUNT",        "Despawn", CFG.MOUNT.Despawn        ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("MOUNT",        "MinLVL",  SafeItoa(CFG.MOUNT.MinLVL,         szSave, 10), INIFileName);
-		WritePrivateProfileString("MOUNT",        "MaxLVL",  SafeItoa(CFG.MOUNT.MaxLVL,         szSave, 10), INIFileName);
+		WritePrivateProfileInt("MOUNT",        "MinLVL",  CFG.MOUNT.MinLVL, INIFileName);
+		WritePrivateProfileInt("MOUNT",        "MaxLVL",  CFG.MOUNT.MaxLVL, INIFileName);
 		WritePrivateProfileString("MOUNT",        "Color",   itohex(CFG.MOUNT.Color,        szSave),     INIFileName);
 		WritePrivateProfileString("PET",          "Spawn",   CFG.PET.Spawn            ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("PET",          "Despawn", CFG.PET.Despawn          ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("PET",          "MinLVL",  SafeItoa(CFG.PET.MinLVL,           szSave, 10), INIFileName);
-		WritePrivateProfileString("PET",          "MaxLVL",  SafeItoa(CFG.PET.MaxLVL,           szSave, 10), INIFileName);
+		WritePrivateProfileInt("PET",          "MinLVL",  CFG.PET.MinLVL, INIFileName);
+		WritePrivateProfileInt("PET",          "MaxLVL",  CFG.PET.MaxLVL, INIFileName);
 		WritePrivateProfileString("PET",          "Color",   itohex(CFG.PET.Color,          szSave),     INIFileName);
 		WritePrivateProfileString("MERCENARY",    "Spawn",   CFG.MERCENARY.Spawn      ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("MERCENARY",    "Despawn", CFG.MERCENARY.Despawn    ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("MERCENARY",    "MinLVL",  SafeItoa(CFG.MERCENARY.MinLVL,     szSave, 10), INIFileName);
-		WritePrivateProfileString("MERCENARY",    "MaxLVL",  SafeItoa(CFG.MERCENARY.MaxLVL,     szSave, 10), INIFileName);
+		WritePrivateProfileInt("MERCENARY",    "MinLVL",  CFG.MERCENARY.MinLVL, INIFileName);
+		WritePrivateProfileInt("MERCENARY",    "MaxLVL",  CFG.MERCENARY.MaxLVL, INIFileName);
 		WritePrivateProfileString("MERCENARY",    "Color",   itohex(CFG.MERCENARY.Color,    szSave),     INIFileName);
 		WritePrivateProfileString("FLYER",        "Spawn",   CFG.FLYER.Spawn          ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("FLYER",        "Despawn", CFG.FLYER.Despawn        ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("FLYER",        "MinLVL",  SafeItoa(CFG.FLYER.MinLVL,         szSave, 10), INIFileName);
-		WritePrivateProfileString("FLYER",        "MaxLVL",  SafeItoa(CFG.FLYER.MaxLVL,         szSave, 10), INIFileName);
+		WritePrivateProfileInt("FLYER",        "MinLVL",  CFG.FLYER.MinLVL, INIFileName);
+		WritePrivateProfileInt("FLYER",        "MaxLVL",  CFG.FLYER.MaxLVL, INIFileName);
 		WritePrivateProfileString("FLYER",        "Color",   itohex(CFG.FLYER.Color,        szSave),     INIFileName);
 		WritePrivateProfileString("CAMPFIRE",     "Spawn",   CFG.CAMPFIRE.Spawn       ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("CAMPFIRE",     "Despawn", CFG.CAMPFIRE.Despawn     ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("CAMPFIRE",     "MinLVL",  SafeItoa(CFG.CAMPFIRE.MinLVL,      szSave, 10), INIFileName);
-		WritePrivateProfileString("CAMPFIRE",     "MaxLVL",  SafeItoa(CFG.CAMPFIRE.MaxLVL,      szSave, 10), INIFileName);
+		WritePrivateProfileInt("CAMPFIRE",     "MinLVL",  CFG.CAMPFIRE.MinLVL, INIFileName);
+		WritePrivateProfileInt("CAMPFIRE",     "MaxLVL",  CFG.CAMPFIRE.MaxLVL, INIFileName);
 		WritePrivateProfileString("CAMPFIRE",     "Color",   itohex(CFG.CAMPFIRE.Color,     szSave),     INIFileName);
 		WritePrivateProfileString("BANNER",       "Spawn",   CFG.BANNER.Spawn         ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("BANNER",       "Despawn", CFG.BANNER.Despawn       ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("BANNER",       "MinLVL",  SafeItoa(CFG.BANNER.MinLVL,        szSave, 10), INIFileName);
-		WritePrivateProfileString("BANNER",       "MaxLVL",  SafeItoa(CFG.BANNER.MaxLVL,        szSave, 10), INIFileName);
+		WritePrivateProfileInt("BANNER",       "MinLVL",  CFG.BANNER.MinLVL, INIFileName);
+		WritePrivateProfileInt("BANNER",       "MaxLVL",  CFG.BANNER.MaxLVL, INIFileName);
 		WritePrivateProfileString("BANNER",       "Color",   itohex(CFG.BANNER.Color,       szSave),     INIFileName);
 		WritePrivateProfileString("AURA",         "Spawn",   CFG.AURA.Spawn           ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("AURA",         "Despawn", CFG.AURA.Despawn         ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("AURA",         "MinLVL",  SafeItoa(CFG.AURA.MinLVL,          szSave, 10), INIFileName);
-		WritePrivateProfileString("AURA",         "MaxLVL",  SafeItoa(CFG.AURA.MaxLVL,          szSave, 10), INIFileName);
+		WritePrivateProfileInt("AURA",         "MinLVL",  CFG.AURA.MinLVL, INIFileName);
+		WritePrivateProfileInt("AURA",         "MaxLVL",  CFG.AURA.MaxLVL, INIFileName);
 		WritePrivateProfileString("AURA",         "Color",   itohex(CFG.AURA.Color,         szSave),     INIFileName);
 		WritePrivateProfileString("OBJECT",       "Spawn",   CFG.OBJECT.Spawn         ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("OBJECT",       "Despawn", CFG.OBJECT.Despawn       ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("OBJECT",       "MinLVL",  SafeItoa(CFG.OBJECT.MinLVL,        szSave, 10), INIFileName);
-		WritePrivateProfileString("OBJECT",       "MaxLVL",  SafeItoa(CFG.OBJECT.MaxLVL,        szSave, 10), INIFileName);
+		WritePrivateProfileInt("OBJECT",       "MinLVL",  CFG.OBJECT.MinLVL, INIFileName);
+		WritePrivateProfileInt("OBJECT",       "MaxLVL",  CFG.OBJECT.MaxLVL, INIFileName);
 		WritePrivateProfileString("OBJECT",       "Color",   itohex(CFG.OBJECT.Color,       szSave),     INIFileName);
 		WritePrivateProfileString("UNTARGETABLE", "Spawn",   CFG.UNTARGETABLE.Spawn   ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("UNTARGETABLE", "Despawn", CFG.UNTARGETABLE.Despawn ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("UNTARGETABLE", "MinLVL",  SafeItoa(CFG.UNTARGETABLE.MinLVL,  szSave, 10), INIFileName);
-		WritePrivateProfileString("UNTARGETABLE", "MaxLVL",  SafeItoa(CFG.UNTARGETABLE.MaxLVL,  szSave, 10), INIFileName);
+		WritePrivateProfileInt("UNTARGETABLE", "MinLVL",  CFG.UNTARGETABLE.MinLVL, INIFileName);
+		WritePrivateProfileInt("UNTARGETABLE", "MaxLVL",  CFG.UNTARGETABLE.MaxLVL, INIFileName);
 		WritePrivateProfileString("UNTARGETABLE", "Color",   itohex(CFG.UNTARGETABLE.Color, szSave),     INIFileName);
 		WritePrivateProfileString("CHEST",        "Spawn",   CFG.CHEST.Spawn          ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("CHEST",        "Despawn", CFG.CHEST.Despawn        ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("CHEST",        "MinLVL",  SafeItoa(CFG.CHEST.MinLVL,         szSave, 10), INIFileName);
-		WritePrivateProfileString("CHEST",        "MaxLVL",  SafeItoa(CFG.CHEST.MaxLVL,         szSave, 10), INIFileName);
+		WritePrivateProfileInt("CHEST",        "MinLVL",  CFG.CHEST.MinLVL, INIFileName);
+		WritePrivateProfileInt("CHEST",        "MaxLVL",  CFG.CHEST.MaxLVL, INIFileName);
 		WritePrivateProfileString("CHEST",        "Color",   itohex(CFG.CHEST.Color,        szSave),     INIFileName);
 		WritePrivateProfileString("TRAP",         "Spawn",   CFG.TRAP.Spawn           ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("TRAP",         "Despawn", CFG.TRAP.Despawn         ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("TRAP",         "MinLVL",  SafeItoa(CFG.TRAP.MinLVL,          szSave, 10), INIFileName);
-		WritePrivateProfileString("TRAP",         "MaxLVL",  SafeItoa(CFG.TRAP.MaxLVL,          szSave, 10), INIFileName);
+		WritePrivateProfileInt("TRAP",         "MinLVL",  CFG.TRAP.MinLVL, INIFileName);
+		WritePrivateProfileInt("TRAP",         "MaxLVL",  CFG.TRAP.MaxLVL, INIFileName);
 		WritePrivateProfileString("TRAP",         "Color",   itohex(CFG.TRAP.Color,         szSave),     INIFileName);
 		WritePrivateProfileString("TIMER",        "Spawn",   CFG.TIMER.Spawn          ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("TIMER",        "Despawn", CFG.TIMER.Despawn        ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("TIMER",        "MinLVL",  SafeItoa(CFG.TIMER.MinLVL,         szSave, 10), INIFileName);
-		WritePrivateProfileString("TIMER",        "MaxLVL",  SafeItoa(CFG.TIMER.MaxLVL,         szSave, 10), INIFileName);
+		WritePrivateProfileInt("TIMER",        "MinLVL",  CFG.TIMER.MinLVL, INIFileName);
+		WritePrivateProfileInt("TIMER",        "MaxLVL",  CFG.TIMER.MaxLVL, INIFileName);
 		WritePrivateProfileString("TIMER",        "Color",   itohex(CFG.TIMER.Color,        szSave),     INIFileName);
 		WritePrivateProfileString("TRIGGER",      "Spawn",   CFG.TRIGGER.Spawn        ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("TRIGGER",      "Despawn", CFG.TRIGGER.Despawn      ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("TRIGGER",      "MinLVL",  SafeItoa(CFG.TRIGGER.MinLVL,       szSave, 10), INIFileName);
-		WritePrivateProfileString("TRIGGER",      "MaxLVL",  SafeItoa(CFG.TRIGGER.MaxLVL,       szSave, 10), INIFileName);
+		WritePrivateProfileInt("TRIGGER",      "MinLVL",  CFG.TRIGGER.MinLVL, INIFileName);
+		WritePrivateProfileInt("TRIGGER",      "MaxLVL",  CFG.TRIGGER.MaxLVL, INIFileName);
 		WritePrivateProfileString("TRIGGER",      "Color",   itohex(CFG.TRIGGER.Color,      szSave),     INIFileName);
 		WritePrivateProfileString("CORPSE",       "Spawn",   CFG.CORPSE.Spawn         ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("CORPSE",       "Despawn", CFG.CORPSE.Despawn       ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("CORPSE",       "MinLVL",  SafeItoa(CFG.CORPSE.MinLVL,        szSave, 10), INIFileName);
-		WritePrivateProfileString("CORPSE",       "MaxLVL",  SafeItoa(CFG.CORPSE.MaxLVL,        szSave, 10), INIFileName);
+		WritePrivateProfileInt("CORPSE",       "MinLVL",  CFG.CORPSE.MinLVL, INIFileName);
+		WritePrivateProfileInt("CORPSE",       "MaxLVL",  CFG.CORPSE.MaxLVL, INIFileName);
 		WritePrivateProfileString("CORPSE",       "Color",   itohex(CFG.CORPSE.Color,       szSave),     INIFileName);
 		WritePrivateProfileString("ITEM",         "Spawn",   CFG.ITEM.Spawn           ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("ITEM",         "Despawn", CFG.ITEM.Despawn         ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("ITEM",         "MinLVL",  SafeItoa(CFG.ITEM.MinLVL,          szSave, 10), INIFileName);
-		WritePrivateProfileString("ITEM",         "MaxLVL",  SafeItoa(CFG.ITEM.MaxLVL,          szSave, 10), INIFileName);
+		WritePrivateProfileInt("ITEM",         "MinLVL",  CFG.ITEM.MinLVL, INIFileName);
+		WritePrivateProfileInt("ITEM",         "MaxLVL",  CFG.ITEM.MaxLVL, INIFileName);
 		WritePrivateProfileString("ITEM",         "Color",   itohex(CFG.ITEM.Color,         szSave),     INIFileName);
 		WritePrivateProfileString("UNKNOWN",      "Spawn",   CFG.UNKNOWN.Spawn        ? "on" : "off",    INIFileName);
 		WritePrivateProfileString("UNKNOWN",      "Despawn", CFG.UNKNOWN.Despawn      ? "on" : "off",    INIFileName);
-		WritePrivateProfileString("UNKNOWN",      "MinLVL",  SafeItoa(CFG.UNKNOWN.MinLVL,       szSave, 10), INIFileName);
-		WritePrivateProfileString("UNKNOWN",      "MaxLVL",  SafeItoa(CFG.UNKNOWN.MaxLVL,       szSave, 10), INIFileName);
+		WritePrivateProfileInt("UNKNOWN",      "MinLVL",  CFG.UNKNOWN.MinLVL, INIFileName);
+		WritePrivateProfileInt("UNKNOWN",      "MaxLVL",  CFG.UNKNOWN.MaxLVL, INIFileName);
 		WritePrivateProfileString("UNKNOWN",      "Color",   itohex(CFG.UNKNOWN.Color,      szSave),     INIFileName);
 
 		SaveOurWnd();
@@ -429,27 +420,18 @@ void HandleConfig(bool bSave)
 		int iValid = GetPrivateProfileInt("Settings", "Delay", (int)CFG.Delay, INIFileName);
 		if (iValid > 0) CFG.Delay = iValid;
 
-		GetPrivateProfileString("Settings", "AutoSave",    CFG.AutoSave   ? "on" : "off", szLoad, MAX_STRING, INIFileName);
-		CFG.AutoSave   = (!_strnicmp(szLoad, "on", 3));
-		GetPrivateProfileString("Settings", "Enabled",     CFG.ON         ? "on" : "off", szLoad, MAX_STRING, INIFileName);
-		CFG.ON         = (!_strnicmp(szLoad, "on", 3));
-		GetPrivateProfileString("Settings", "SaveByChar",  CFG.SaveByChar ? "on" : "off", szLoad, MAX_STRING, INIFileName);
-		CFG.SaveByChar = (!_strnicmp(szLoad, "on", 3));
-		GetPrivateProfileString("Settings", "ShowLoc",     CFG.Location   ? "on" : "off", szLoad, MAX_STRING, INIFileName);
-		CFG.Location   = (!_strnicmp(szLoad, "on", 3));
-		GetPrivateProfileString("Settings", "SpawnID",     CFG.SpawnID    ? "on" : "off", szLoad, MAX_STRING, INIFileName);
-		CFG.SpawnID    = (!_strnicmp(szLoad, "on", 3));
-		GetPrivateProfileString("Settings", "Timestamp",   CFG.Timestamp  ? "on" : "off", szLoad, MAX_STRING, INIFileName);
-		CFG.Timestamp  = (!_strnicmp(szLoad, "on", 3));
+		CFG.AutoSave = GetPrivateProfileBool("Settings", "AutoSave", CFG.AutoSave, INIFileName);
+		CFG.ON = GetPrivateProfileBool("Settings", "Enabled", CFG.ON, INIFileName);
+		CFG.SaveByChar = GetPrivateProfileBool("Settings", "SaveByChar", CFG.SaveByChar, INIFileName);
+		CFG.Location = GetPrivateProfileBool("Settings", "ShowLoc", CFG.Location, INIFileName);
+		CFG.SpawnID = GetPrivateProfileBool("Settings", "SpawnID", CFG.SpawnID, INIFileName);
+		CFG.Timestamp = GetPrivateProfileBool("Settings", "Timestamp", CFG.Timestamp, INIFileName);
 
-		//logging addition
 		GetPrivateProfileString(CFG.SaveByChar ? szCharName : "Settings", "Logging", CFG.Logging ? "on" : "off", szLoad, MAX_STRING, INIFileName);
 		CFG.Logging    = (!_strnicmp(szLoad, "on", 3));
 		GetPrivateProfileString(CFG.SaveByChar ? szCharName : "Settings", "LogPath", gPathConfig,              szDirPath, MAX_STRING, INIFileName);
 		sprintf_s(szLogPath, "%s\\%s", szDirPath, szLogFile);
 		if (CFG.Logging) bLogActive = true;
-		// end of logging
-
 
 		GetPrivateProfileString("ALL", "Spawn", CFG.ALL.Spawn ? "on" : "off", szLoad, MAX_STRING, INIFileName);
 		CFG.ALL.Spawn = (!_strnicmp(szLoad, "on", 3));
@@ -604,22 +586,17 @@ void HandleConfig(bool bSave)
 		GetPrivateProfileString("UNKNOWN", "Color", "FF69B4", szLoad, MAX_STRING, INIFileName);
 		sscanf_s(szLoad, "%06X", &CFG.UNKNOWN.Color);
 
-		// add custom exclude list
-		char szOurKey[MAX_STRING]    = {0};
-		char szOurFilter[MAX_STRING] = {0};
-		int  iFilt                   = 1;
 
 		SpawnFilters.clear();
-		GetPrivateProfileString("Exclude", SafeItoa(iFilt, szOurKey, 10), NULL, szOurFilter, MAX_STRING, INIFileName);
-		for (iFilt = 1; *szOurFilter; iFilt++)
+		int iFilt = 1;
+		std::string ourFilter = GetPrivateProfileString("Exclude", std::to_string(iFilt), {}, INIFileName);
+		while (!ourFilter.empty())
 		{
-			if (*szOurFilter)
-			{
-				SpawnFilters.push_back(szOurFilter);
-			}
-			GetPrivateProfileString("Exclude", SafeItoa(iFilt+1, szOurKey, 10), NULL, szOurFilter, MAX_STRING, INIFileName);
+			SpawnFilters.push_back(std::move(ourFilter));
+
+			++iFilt;
+			ourFilter = GetPrivateProfileString("Exclude", std::to_string(iFilt), {}, INIFileName);
 		}
-		// end custom exclude list addition
 
 		KillOurWnd(false);
 	}
@@ -682,7 +659,7 @@ void SetSpawnLevel(const char* pszSetOutput, int* piSpawnTypeSet, int iNewLevel)
 	WriteChatf(szTheMsg);
 }
 
-void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
+void WatchSpawns(PlayerClient*, const char* szLine)
 {
 	int iNewLevel               = 0;
 	unsigned long ulNewColor    = 0;
@@ -707,8 +684,8 @@ void WatchSpawns(PSPAWNINFO pLPlayer, char* szLine)
 		_strlwr_s(szArg2);
 		SpawnFilters.push_back(szArg2);
 		int iNewSize = (int)SpawnFilters.size();
-		char szTempFilt[10] = {0};
-		WritePrivateProfileString("Exclude", SafeItoa(iNewSize, szTempFilt, 10), szArg2, INIFileName);
+
+		WritePrivateProfileString("Exclude", std::to_string(iNewSize), szArg2, INIFileName);
 		WriteChatf("\ay%s\aw:: Added Exclude # \ay%d\ax: \ag%s", mqplugin::PluginName, iNewSize, szArg2);
 		return;
 	}
@@ -1554,7 +1531,7 @@ void WriteSpawn(PSPAWNINFO pFormatSpawn, char* szTypeString, char* szLocString, 
 	char szProcessTemp[MAX_STRING] = {0};
 	char szProcessTemp2[MAX_STRING] = {0};
 
-	bool bScrollDown = (OurWnd->OutWnd->GetVScrollPos() == OurWnd->OutWnd->GetVScrollMax()) ? true : false;
+	bool bScrollDown = (OurWnd->m_stmlWnd->GetVScrollPos() == OurWnd->m_stmlWnd->GetVScrollMax()) ? true : false;
 	unsigned long ulColor = SpawnFormat->Color;
 
 	//sprintf_s(szColoredSpawn, "[<c \"#%06X\"> %d %s %s</c> ] <<c \"#%06X\"> %s </c>> (<c \"#%06X\">%s</c>)", ulColor, pFormatSpawn->Level, pEverQuest->GetRaceDesc(pFormatSpawn->mActorClient.Race), GetClassDesc(pFormatSpawn->mActorClient.Class), ulColor, pFormatSpawn->DisplayedName, ulColor, szTypeString);
@@ -1636,10 +1613,10 @@ void WriteSpawn(PSPAWNINFO pFormatSpawn, char* szTypeString, char* szLocString, 
 	strcat_s(szFinalOutput,"<br>");
 	((CXWnd*)OurWnd)->Show(1, 1);
 	CXStr NewText(szFinalOutput);
-	OurWnd->OutWnd->AppendSTML(NewText);
+	OurWnd->m_stmlWnd->AppendSTML(NewText);
 	if (bScrollDown)
 	{
-		(OurWnd->OutWnd)->SetVScrollPos(OurWnd->OutWnd->GetVScrollMax());
+		(OurWnd->m_stmlWnd)->SetVScrollPos(OurWnd->m_stmlWnd->GetVScrollMax());
 	}
 }
 
@@ -1859,9 +1836,9 @@ PLUGIN_API void OnCleanUI()
 
 PLUGIN_API void OnPulse()
 {
-	if(InHoverState() && OurWnd)
+	if (InHoverState() && OurWnd)
 	{
-		((CXWnd*)OurWnd)->DoAllDrawing();
+		OurWnd->DoAllDrawing();
 	}
 }
 
